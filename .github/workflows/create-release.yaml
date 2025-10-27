@@ -11,6 +11,9 @@ on:
         description: "Release Tag"
         required: true
         type: string
+    secrets:
+      PAT_RELEASE_TOKEN:
+        required: true
 
 permissions:
   contents: write

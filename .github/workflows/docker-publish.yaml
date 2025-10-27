@@ -12,6 +12,9 @@ on:
       tag:
         required: true
         type: string
+    secrets:
+      REGISTRY_PASSWORD:
+        required: true
 
 permissions:
   contents: read
