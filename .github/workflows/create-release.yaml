@@ -1,0 +1,63 @@
+name: Create Release
+
+on:
+  workflow_call:
+    inputs:
+      release_name_prefix:
+        description: "Optional prefix for the release title"
+        type: string
+        default: ""
+      release_tag:
+        description: "Release Tag"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  create-release:
+    name: Create New Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog since previous tag
+        id: changelog
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git describe --tags --abbrev=0 >/dev/null 2>&1; then
+            prev=$(git describe --tags --abbrev=0 "^${{ inputs.release_tag }}" || true)
+          else
+            prev=""
+          fi
+
+          if [ -n "$prev" ]; then
+            log_range="${prev}..${{ inputs.release_tag }}"
+          else
+            # Fall back to commits included in the tagged commit
+            log_range="${{ inputs.release_tag }}"
+          fi
+
+          notes="$(git log $log_range --pretty=format:'- %s' --no-merges || true)"
+          echo "notes<<EOF" >>"$GITHUB_OUTPUT"
+          echo "${notes:-No notable changes.}" >>"$GITHUB_OUTPUT"
+          echo "EOF" >>"$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.release_tag }}
+          name: ${{ inputs.release_name_prefix }}${{ inputs.release_tag }}
+          body: ${{ steps.changelog.outputs.notes }}
+          draft: false
+          prerelease: false
