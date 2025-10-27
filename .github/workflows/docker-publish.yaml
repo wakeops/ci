@@ -48,6 +48,8 @@ jobs:
         id: resolve
         shell: bash
         run: |
+          tag='${{ inputs.tag }}'
+
           # Remove 'v' prefix if present
           clean_tag="${tag#v}"
 

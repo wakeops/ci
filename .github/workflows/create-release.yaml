@@ -38,20 +38,24 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if git describe --tags --abbrev=0 >/dev/null 2>&1; then
-            prev=$(git describe --tags --abbrev=0 "^${{ inputs.release_tag }}" || true)
-          else
-            prev=""
-          fi
+          tag='${{ inputs.release_tag }}'
+
+          # Resolve the commit the new tag points to (works for annotated or lightweight)
+          tag_commit="$(git rev-list -n 1 "$tag")"
+
+          # Previous tag reachable before this tag's commit; `${tag}^` starts the search at the parent of the tagged commit
+          prev="$(git describe --tags --abbrev=0 "${tag}^" 2>/dev/null || true)"
 
           if [ -n "$prev" ]; then
-            log_range="${prev}..${{ inputs.release_tag }}"
+            range="${prev}..${tag_commit}"
           else
-            # Fall back to commits included in the tagged commit
-            log_range="${{ inputs.release_tag }}"
+            # No previous tag: only include the tagged commit (or the range since repo start if you prefer)
+            range="${tag_commit}^..${tag_commit}"
           fi
 
-          notes="$(git log $log_range --pretty=format:'- %s' --no-merges || true)"
+          # Build notes; drop merge commits (remove --no-merges if you want them)
+          notes="$(git log $range --pretty=format:'- %s' --no-merges || true)"
+
           echo "notes<<EOF" >>"$GITHUB_OUTPUT"
           echo "${notes:-No notable changes.}" >>"$GITHUB_OUTPUT"
           echo "EOF" >>"$GITHUB_OUTPUT"
