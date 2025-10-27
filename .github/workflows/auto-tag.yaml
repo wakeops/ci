@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  auto-tag:
+  auto_tag:
     name: Auto Tag Repository
     runs-on: ubuntu-latest
     outputs:

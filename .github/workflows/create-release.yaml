@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  create-release:
+  create_release:
     name: Create New Release
     runs-on: ubuntu-latest
 
