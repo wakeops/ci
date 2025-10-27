@@ -64,7 +64,7 @@ jobs:
           images: |
             ${{ vars.REGISTRY_HOST }}/${{ vars.REGISTRY_NAMESPACE }}/${{ inputs.image_name }}
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest
             type=raw,value=${{ steps.resolve.outputs.tag }}
 
       - uses: docker/build-push-action@v6
